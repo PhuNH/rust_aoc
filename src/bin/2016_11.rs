@@ -71,9 +71,9 @@ impl FloorView {
         }
     }
     
-    // fn is_valid(&self) -> bool {
-    //     self.single_chips == 0 || (self.single_gens == 0 && self.pairs == 0)
-    // }
+    fn is_valid(&self) -> bool {
+        self.single_chips == 0 || (self.single_gens == 0 && self.pairs == 0)
+    }
 
     fn make(groups: &FloorGroups) -> FloorView {
         FloorView {
@@ -161,6 +161,10 @@ impl Hash for State {
 }
 
 impl State {
+    fn is_valid(&self) -> bool {
+        self.floors.values().all(|f| f.view.is_valid())
+    }
+
     fn move_to_state(&self, m: Move) -> State {
         let elevator_floor = (self.elevator_floor as i32 + m.direction) as usize;
         let mut floors = self.floors.clone();
@@ -170,7 +174,10 @@ impl State {
     }
 
     fn add_state_by_objects(&self, objects: Vec<i32>, direction: i32, states: &mut HashSet<State>) {
-        states.insert(self.move_to_state(Move { objects: objects.iter().cloned().collect::<HashSet<_>>(), direction }));
+        let state = self.move_to_state(Move { objects: objects.iter().cloned().collect::<HashSet<_>>(), direction });
+        if state.is_valid() {
+            states.insert(state);
+        }
     }
 
     fn make_states(&self, direction: i32) -> HashSet<State> {
@@ -248,7 +255,7 @@ impl State {
                     let common: HashSet<i32> = current_floor.groups.single_gens.intersection(&next_floor.groups.single_chips).cloned().collect();
                     if common.len() > 0 {
                         let mut common_iter = common.iter();
-                        let first_common_gen = common_iter.next().cloned().unwrap();
+                        let first_common_gen = *common_iter.next().unwrap();
                         self.add_state_by_objects(vec![first_common_gen], direction, &mut states);
                         if common.len() > 1 {
                             let second_common_gen = *common_iter.next().unwrap();
