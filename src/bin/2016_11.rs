@@ -1,10 +1,9 @@
 use aoc::utils;
-use itertools::Itertools;
 use std::collections::{HashSet, HashMap, VecDeque};
 use std::hash::{Hash, Hasher};
 use std::fmt::{Debug, Formatter};
 
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq)]
 struct FloorGroups {
     pairs: HashSet<i32>,
     single_gens: HashSet<i32>,
@@ -37,22 +36,22 @@ impl FloorGroups {
     }
 }
 
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq)]
 struct FloorView {
     pairs: usize,
     single_gens: usize,
     single_chips: usize,
 }
 
-// impl Debug for FloorView {
-//     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-//         f.debug_struct("FV")
-//             .field("p", &self.pairs)
-//             .field("g", &self.single_gens)
-//             .field("c", &self.single_chips)
-//             .finish()
-//     }
-// }
+impl Debug for FloorView {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("FloorView")
+            .field("pairs", &self.pairs)
+            .field("gens", &self.single_gens)
+            .field("chips", &self.single_chips)
+            .finish()
+    }
+}
 
 impl Hash for FloorView {
     fn hash<H: Hasher>(&self, state: &mut H) {
@@ -84,31 +83,25 @@ impl FloorView {
     }
 }
 
-#[derive(Debug, Clone, Eq)]
+#[derive(Clone, Eq)]
 struct Floor {
     objects: HashSet<i32>,
     groups: FloorGroups,
     view: FloorView,
 }
 
-// impl Debug for Floor {
-//     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-//         f.debug_struct("F")
-//             .field("o", &self.objects)
-//             .field("v", &self.view)
-//             .finish()
-//     }
-// }
+impl Debug for Floor {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Floor")
+            .field("objects", &self.objects)
+            .field("view", &self.view)
+            .finish()
+    }
+}
 
 impl PartialEq for Floor {
     fn eq(&self, other: &Self) -> bool {
         self.objects == other.objects
-    }
-}
-
-impl Hash for Floor {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.objects.iter().sorted().for_each(|o| o.hash(state));
     }
 }
 
