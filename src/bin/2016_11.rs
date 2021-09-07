@@ -69,10 +69,6 @@ impl FloorView {
             single_chips: 0,
         }
     }
-    
-    fn is_valid(&self) -> bool {
-        self.single_chips == 0 || (self.single_gens == 0 && self.pairs == 0)
-    }
 
     fn make(groups: &FloorGroups) -> FloorView {
         FloorView {
@@ -131,10 +127,20 @@ struct Move {
     direction: i32,
 }
 
-#[derive(Debug, Clone, Eq)]
+#[derive(Clone, Eq)]
 struct State {
+    // prev_state: Box<Option<State>>,
     elevator_floor: usize,
     floors: HashMap<usize, Floor>,
+}
+
+impl Debug for State {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("State")
+            .field("elevator", &self.elevator_floor)
+            .field("floors", &self.floors)
+            .finish()
+    }
 }
 
 impl PartialEq for State {
@@ -154,23 +160,17 @@ impl Hash for State {
 }
 
 impl State {
-    fn is_valid(&self) -> bool {
-        self.floors.values().all(|f| f.view.is_valid())
-    }
-
     fn move_to_state(&self, m: Move) -> State {
         let elevator_floor = (self.elevator_floor as i32 + m.direction) as usize;
         let mut floors = self.floors.clone();
         floors.insert(self.elevator_floor, self.floors.get(&self.elevator_floor).unwrap().subtract(&m.objects));
         floors.insert(elevator_floor, self.floors.get(&elevator_floor).unwrap().add(&m.objects));
-        State { elevator_floor, floors }
+        State { /*prev_state: Box::new(Some(self.clone())),*/ elevator_floor, floors }
     }
 
     fn add_state_by_objects(&self, objects: Vec<i32>, direction: i32, states: &mut HashSet<State>) {
         let state = self.move_to_state(Move { objects: objects.iter().cloned().collect::<HashSet<_>>(), direction });
-        if state.is_valid() {
-            states.insert(state);
-        }
+        states.insert(state);
     }
 
     fn make_states(&self, direction: i32) -> HashSet<State> {
@@ -193,14 +193,20 @@ impl State {
                     }
                 } else {
                     // next floor has at least one single chip: move 0 or 1 or 2 gens that have correspondent chips in next_floor
-                    let common: HashSet<i32> = current_floor.groups.single_gens.intersection(&next_floor.groups.single_chips).cloned().collect();
-                    if common.len() > 0 {
-                        let mut common_iter = common.iter();
-                        let first_common = *common_iter.next().unwrap();
-                        self.add_state_by_objects(vec![first_common], direction, &mut states);
-                        if common.len() > 1 {
-                            let second_common = *common_iter.next().unwrap();
-                            self.add_state_by_objects(vec![first_common, second_common], direction, &mut states);
+                    if next_floor.view.single_chips < 3 {
+                        let common: HashSet<i32> = current_floor.groups.single_gens.intersection(&next_floor.groups.single_chips).cloned().collect();
+                        if common.len() > 0 {
+                            let mut common_iter = common.iter();
+                            let first_common = *common_iter.next().unwrap();
+                            self.add_state_by_objects(vec![first_common], direction, &mut states);
+                            if next_floor.view.single_chips == 1 && current_floor.view.single_gens > 1 {
+                                let other_gen = *current_floor.groups.single_gens.iter().find(|&g| *g != first_common).unwrap();
+                                self.add_state_by_objects(vec![first_common, other_gen], direction, &mut states);
+                            }
+                            if common.len() > 1 {
+                                let second_common = *common_iter.next().unwrap();
+                                self.add_state_by_objects(vec![first_common, second_common], direction, &mut states);
+                            }
                         }
                     }
                 }
@@ -210,9 +216,10 @@ impl State {
                 let first_pair_gen = *current_floor_pairs_iter.next().unwrap();
                 let second_pair_gen_option = current_floor_pairs_iter.next().cloned();
                 if next_floor.view.single_chips == 0 {
-                    self.add_state_by_objects(vec![first_pair_gen], direction, &mut states);
                     self.add_state_by_objects(vec![first_pair_gen, -first_pair_gen], direction, &mut states);
-                    if current_floor.view.pairs == 2 {
+                    if current_floor.view.pairs == 1 {
+                        self.add_state_by_objects(vec![first_pair_gen], direction, &mut states);
+                    } else if current_floor.view.pairs == 2 {
                         self.add_state_by_objects(vec![first_pair_gen, second_pair_gen_option.unwrap()], direction, &mut states);
                     }
                 }
@@ -245,33 +252,39 @@ impl State {
                         let second_pair_gen = *current_floor_pairs_iter.next().unwrap();
                         self.add_state_by_objects(vec![-first_pair_gen, -second_pair_gen], direction, &mut states);
                     }
-                    let common: HashSet<i32> = current_floor.groups.single_gens.intersection(&next_floor.groups.single_chips).cloned().collect();
-                    if common.len() > 0 {
-                        let mut common_iter = common.iter();
-                        let first_common_gen = *common_iter.next().unwrap();
-                        self.add_state_by_objects(vec![first_common_gen], direction, &mut states);
-                        if common.len() > 1 {
-                            let second_common_gen = *common_iter.next().unwrap();
-                            self.add_state_by_objects(vec![first_common_gen, second_common_gen], direction, &mut states);
+                    if next_floor.view.single_chips < 3 {
+                        let common: HashSet<i32> = current_floor.groups.single_gens.intersection(&next_floor.groups.single_chips).cloned().collect();
+                        if common.len() > 0 {
+                            let mut common_iter = common.iter();
+                            let first_common_gen = *common_iter.next().unwrap();
+                            self.add_state_by_objects(vec![first_common_gen], direction, &mut states);
+                            if next_floor.view.single_chips == 1 && current_floor.view.single_gens > 1 {
+                                let other_gen = *current_floor.groups.single_gens.iter().find(|&g| *g != first_common_gen).unwrap();
+                                self.add_state_by_objects(vec![first_common_gen, other_gen], direction, &mut states);
+                            } else if next_floor.view.single_chips == 1 && current_floor.view.pairs == 1 {
+                                let other_gen_in_pair = *current_floor.groups.pairs.iter().next().unwrap();
+                                self.add_state_by_objects(vec![first_common_gen, other_gen_in_pair], direction, &mut states);
+                            }
+                            if common.len() > 1 {
+                                let second_common_gen = *common_iter.next().unwrap();
+                                self.add_state_by_objects(vec![first_common_gen, second_common_gen], direction, &mut states);
+                            }
                         }
                     }
                 }
             }
         } else {
             // this floor has at least one single chip, so there is no pair and no single gen
-            if next_floor.view.single_gens == 0 && next_floor.view.pairs != 0 {
-                // next floor has no single gen and some pairs: cannot move anything
-                ();
-            } else if next_floor.view.single_gens == 0 {
+            if next_floor.view.single_gens == 0 && next_floor.view.pairs == 0 {
                 // next floor has no single gen and no pair: move 1 or 2 random chips
                 let mut current_floor_objects_iter = current_floor.objects.iter();
                 let first = *current_floor_objects_iter.next().unwrap();
                 self.add_state_by_objects(vec![first], direction, &mut states);
                 if current_floor.view.single_chips > 1 {
                     let second = *current_floor_objects_iter.next().unwrap();
-                    self.add_state_by_objects(vec![second], direction, &mut states);
+                    self.add_state_by_objects(vec![first, second], direction, &mut states);
                 }
-            } else {
+            } else if next_floor.view.single_gens > 0 {
                 // next floor has at least one single gen: move 0 or 1 or 2 chips that have correspondent gens in next_floor
                 let common: HashSet<i32> = current_floor.groups.single_chips.intersection(&next_floor.groups.single_gens).cloned().collect();
                 if common.len() > 0 {
@@ -319,7 +332,7 @@ fn read_input(lines: &Vec<&str>) -> State {
         });
         (number+1, Floor::make(objects))
     }).collect();
-    State { elevator_floor: 1, floors }
+    State { /*prev_state: Box::new(None),*/ elevator_floor: 1, floors }
 }
 
 fn go(initial: State) -> usize {
@@ -327,6 +340,7 @@ fn go(initial: State) -> usize {
     queue.push_back((initial.clone(), 0usize));
     let mut passed_states = HashSet::new();
     passed_states.insert(initial);
+    // let mut last_state: State;
     let step_count: usize = loop {
         let (state, step) = queue.pop_front().unwrap();
         let next_states: HashSet<_> = state.next_states().iter().cloned().filter(|s| !passed_states.contains(s)).collect();
@@ -337,35 +351,50 @@ fn go(initial: State) -> usize {
         //     println!("{}", step+1);
         //     println!("---");
         // }
-        if next_states.iter().any(|s| s.is_final()) {
-            break step + 1;
+        if let Some(_) = next_states.iter().find(|&s| s.is_final()) {
+            // last_state = (*s).clone();
+            break step+1;
         }
         next_states.iter().cloned().for_each(|s| {
             queue.push_back((s.clone(), step+1));
             passed_states.insert(s);
         });
     };
+    // loop {
+    //     println!("{:?}", last_state);
+    //     match *last_state.prev_state {
+    //         Some(s) => last_state = s,
+    //         None => break
+    //     }
+    // }
     step_count
 }
 
 fn main() {
     let input = utils::read_input();
     let lines: Vec<&str> = input.lines().collect();
-    let initial_state = read_input(&lines);
+    let input_state = read_input(&lines);
     // assert_eq!(initial_state.floors.get(&1).unwrap().view.pairs, 1);
     // assert_eq!(initial_state.floors.get(&2).unwrap().view.single_gens, 4);
     // assert_eq!(initial_state.floors.get(&3).unwrap().view.single_chips, 4);
     // assert_eq!(initial_state.floors.get(&4).unwrap().view.single_gens, 0);
-    // println!("{:?}", initial_state);
-    one(&initial_state);
-    two();
+    // println!("{:?}", input_state);
+    one(&input_state);
+    two(&input_state);
 }
 
-fn one(initial_state: &State) {
-    let step_count = go(initial_state.clone());
+fn one(input_state: &State) {
+    let step_count = go(input_state.clone());
     println!("{}", step_count);
 }
 
-fn two() {
-    println!();
+fn two(input_state: &State) {
+    let mut updated_state = input_state.clone();
+    let first_floor = updated_state.floors.get_mut(&1).unwrap();
+    let objects: HashSet<_> = [100, -100, 200, -200].iter().cloned().collect();
+    *first_floor = first_floor.add(&objects);
+    assert_eq!(updated_state.floors.get(&1).unwrap().view.pairs, 3);
+    // println!("{:?}", updated_state.floors.get(&1).unwrap());
+    let step_count = go(updated_state);
+    println!("{}", step_count);
 }
