@@ -58,17 +58,14 @@ impl Instruction {
         match self {
             Instruction::Copy(value, register_name) => {
                 let register = registers.get(register_name).unwrap();
-                // *register.borrow_mut() = value.get(registers);
                 register.set(value.get(registers));
             }
             Instruction::Inc(register_name) => {
                 let register = registers.get(register_name).unwrap();
-                // *register.borrow_mut() = *register.borrow() + 1;
                 register.set(register.get() + 1);
             },
             Instruction::Dec(register_name) => {
                 let register = registers.get(register_name).unwrap();
-                // *register.borrow_mut() = *register.borrow() - 1;
                 register.set(register.get() - 1);
             },
             Instruction::Jnz(value, dist) => {
@@ -78,7 +75,6 @@ impl Instruction {
             }
         }
         ip.set(ip.get() + ip_dist);
-        // *(ip.borrow_mut()) = *ip.borrow() + ip_dist;
     }
 }
 

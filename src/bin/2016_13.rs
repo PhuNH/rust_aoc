@@ -26,20 +26,20 @@ impl Coord {
 fn main() {
     let input = 1364;
     let initial_coord = Coord { x: 1, y: 1 };
-    one(input, &initial_coord);
-    two(input, &initial_coord);
+    one(input, initial_coord.clone());
+    two(input, initial_coord);
 }
 
-fn one(input: i32, initial_coord: &Coord) {
+fn one(input: i32, initial_coord: Coord) {
     let dest_coord = Coord { x: 31, y: 39 };
     let mut queue = VecDeque::new();
     queue.push_back((initial_coord.clone(), 0usize));
     let mut passed_coords = HashSet::new();
-    passed_coords.insert(initial_coord.clone());
+    passed_coords.insert(initial_coord);
     let step_count = loop {
         let (coord, step) = queue.pop_front().unwrap();
         let neighbors: HashSet<_> = coord.neighbors()
-            .iter().cloned()
+            .into_iter()
             .filter(|c| !passed_coords.contains(c) && c.is_valid() && c.is_space(input))
             .collect();
         // println!("neighbors: {:?}", neighbors);
@@ -47,7 +47,7 @@ fn one(input: i32, initial_coord: &Coord) {
         if neighbors.contains(&dest_coord) {
             break step+1;
         }
-        neighbors.iter().cloned().for_each(|c| {
+        neighbors.into_iter().for_each(|c| {
             queue.push_back((c.clone(), step+1));
             passed_coords.insert(c);
         });
@@ -55,19 +55,19 @@ fn one(input: i32, initial_coord: &Coord) {
     println!("{}", step_count);
 }
 
-fn two(input: i32, initial_coord: &Coord) {
+fn two(input: i32, initial_coord: Coord) {
     let mut queue = VecDeque::new();
     queue.push_back((initial_coord.clone(), 0usize));
     let mut passed_coords = HashSet::new();
-    passed_coords.insert(initial_coord.clone());
+    passed_coords.insert(initial_coord);
     loop {
         let (coord, step) = queue.pop_front().unwrap();
         if step == 50 { break }
         let neighbors: HashSet<_> = coord.neighbors()
-            .iter().cloned()
+            .into_iter()
             .filter(|c| !passed_coords.contains(c) && c.is_valid() && c.is_space(input))
             .collect();
-        neighbors.iter().cloned().for_each(|c| {
+        neighbors.into_iter().for_each(|c| {
             queue.push_back((c.clone(), step+1));
             passed_coords.insert(c);
         });

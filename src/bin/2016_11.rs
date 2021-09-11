@@ -2,6 +2,7 @@ use aoc::utils;
 use std::collections::{HashSet, HashMap, VecDeque};
 use std::hash::{Hash, Hasher};
 use std::fmt::{Debug, Formatter};
+use std::time::Instant;
 
 #[derive(Clone, Eq, PartialEq)]
 struct FloorGroups {
@@ -169,7 +170,7 @@ impl State {
     }
 
     fn add_state_by_objects(&self, objects: Vec<i32>, direction: i32, states: &mut HashSet<State>) {
-        let state = self.move_to_state(Move { objects: objects.iter().cloned().collect::<HashSet<_>>(), direction });
+        let state = self.move_to_state(Move { objects: objects.into_iter().collect::<HashSet<_>>(), direction });
         states.insert(state);
     }
 
@@ -302,9 +303,10 @@ impl State {
     }
 
     fn next_states(&self) -> HashSet<State> {
-        let up_states = if self.elevator_floor < 4 { self.make_states(1) } else { HashSet::new() };
+        let mut up_states = if self.elevator_floor < 4 { self.make_states(1) } else { HashSet::new() };
         let down_states = if self.elevator_floor > 1 { self.make_states(-1) } else { HashSet::new() };
-        up_states.union(&down_states).cloned().collect()
+        up_states.extend(down_states.into_iter());
+        up_states
     }
 
     fn is_final(&self) -> bool {
@@ -343,7 +345,7 @@ fn go(initial: State) -> usize {
     // let mut last_state: State;
     let step_count: usize = loop {
         let (state, step) = queue.pop_front().unwrap();
-        let next_states: HashSet<_> = state.next_states().iter().cloned().filter(|s| !passed_states.contains(s)).collect();
+        let next_states: HashSet<_> = state.next_states().into_iter().filter(|s| !passed_states.contains(s)).collect();
         // if step < 2 {
         //     println!("next_states: {:?}", next_states);
         //     println!("next states len: {}", next_states.len());
@@ -355,7 +357,7 @@ fn go(initial: State) -> usize {
             // last_state = (*s).clone();
             break step+1;
         }
-        next_states.iter().cloned().for_each(|s| {
+        next_states.into_iter().for_each(|s| {
             queue.push_back((s.clone(), step+1));
             passed_states.insert(s);
         });
@@ -379,8 +381,12 @@ fn main() {
     // assert_eq!(initial_state.floors.get(&3).unwrap().view.single_chips, 4);
     // assert_eq!(initial_state.floors.get(&4).unwrap().view.single_gens, 0);
     // println!("{:?}", input_state);
+    let now = Instant::now();
     one(&input_state);
+    println!("first part: {}", now.elapsed().as_millis());
+    let now = Instant::now();
     two(&input_state);
+    println!("second part: {}", now.elapsed().as_millis());
 }
 
 fn one(input_state: &State) {
@@ -391,7 +397,7 @@ fn one(input_state: &State) {
 fn two(input_state: &State) {
     let mut updated_state = input_state.clone();
     let first_floor = updated_state.floors.get_mut(&1).unwrap();
-    let objects: HashSet<_> = [100, -100, 200, -200].iter().cloned().collect();
+    let objects: HashSet<_> = vec![100, -100, 200, -200].into_iter().collect();
     *first_floor = first_floor.add(&objects);
     assert_eq!(updated_state.floors.get(&1).unwrap().view.pairs, 3);
     // println!("{:?}", updated_state.floors.get(&1).unwrap());
