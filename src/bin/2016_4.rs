@@ -19,7 +19,7 @@ fn process_input(input: String) -> Vec<RoomInfo> {
         let others_and_checksum: Vec<&str> = l.split(&['[', ']'][..]).collect();
         let sector_and_name = others_and_checksum[0].rsplitn(2, '-').collect::<Vec<&str>>();
         let sector_id: u32 = sector_and_name[0].parse().unwrap();
-        let name = sector_and_name[1].clone().to_string();
+        let name = sector_and_name[1].to_string();
         RoomInfo { name, sector_id, checksum: others_and_checksum[1].to_string() }
     }).collect()
 }
@@ -57,13 +57,12 @@ fn process_name(name: &String) -> String {
         let group = freq_map_group_by_freq.entry(f).or_insert(Vec::new());
         group.push(c);
     }
-    let mut freqs = freq_map_group_by_freq.keys().cloned().collect::<Vec<i32>>();
+    let mut freqs = freq_map_group_by_freq.keys().collect::<Vec<_>>();
     freqs.sort();
-    freqs.iter().rev().flat_map(|f| {
-        let cv = freq_map_group_by_freq.get(&f).unwrap();
-        let mut cv_cloned = cv.clone();
-        cv_cloned.sort();
-        cv_cloned
+    freqs.iter().rev().flat_map(|&f| {
+        let mut cv = freq_map_group_by_freq.get(f).unwrap().clone();
+        cv.sort();
+        cv
     }).collect()
 }
 

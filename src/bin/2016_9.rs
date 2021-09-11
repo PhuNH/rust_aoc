@@ -17,7 +17,7 @@ fn decompress(input: &str, version: u32) -> usize {
             let marker_parts: Vec<&str> = close_parts[0].split('x').collect();
             if marker_parts.len() != 2 { input.len() }
             else {
-                let marker_parts: Vec<u32> = marker_parts.iter().cloned().map(|s| s.parse().unwrap()).collect();
+                let marker_parts: Vec<u32> = marker_parts.into_iter().map(|s| s.parse().unwrap()).collect();
                 let (len, rep) = (marker_parts[0], marker_parts[1]);
                 let mut compressed_chars: Vec<_> = close_parts[1].chars().collect();
                 let still_compressed = compressed_chars.split_off(len as usize);

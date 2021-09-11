@@ -109,7 +109,7 @@ impl BotNet {
 
 fn read_input(lines: Vec<&str>) -> BotNet {
     let mut bot_net = BotNet::new();
-    lines.iter().cloned().for_each(|l| {
+    lines.into_iter().for_each(|l| {
         let words: Vec<&str> = l.split_whitespace().collect();
         if words[0] == "bot" {
             let v: Vec<u32> = [1, 6, 11].iter().map(|i| words[*i].parse().unwrap()).collect();
