@@ -8,6 +8,6 @@ pub fn read_input() -> String {
     fs::read_to_string(format!("input/{}", exe_name)).unwrap()
 }
 
-pub fn hex_md5(salt: &str, index: u32) -> String {
-    format!("{:x}", md5::compute(salt.to_owned() + &index.to_string()))
+pub fn hex_md5(salt: &str, additional: &String) -> String {
+    format!("{:x}", md5::compute(salt.to_owned() + additional))
 }

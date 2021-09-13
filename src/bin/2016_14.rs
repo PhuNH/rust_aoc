@@ -8,11 +8,11 @@ fn has_five(hash: &String, char_three: &char) -> bool {
     })
 }
 
-fn is_key(index: u32, stream: &mut Vec<String>, salt: &str, hash_func: fn(&str, u32) -> String) -> bool {
+fn is_key(index: u32, stream: &mut Vec<String>, salt: &str, hash_func: fn(&str, &String) -> String) -> bool {
     let hash = {
         if stream.len() <= index as usize {
             for i in (stream.len() as u32)..=index {
-                stream.push(hash_func(salt, i));
+                stream.push(hash_func(salt, &i.to_string()));
             }
         }
         &stream[index as usize]
@@ -33,7 +33,7 @@ fn is_key(index: u32, stream: &mut Vec<String>, salt: &str, hash_func: fn(&str, 
             else if stream.len() >= last_1k_index { false }
             else {
                 (stream.len()..last_1k_index).any(|i| {
-                    let new_hash = hash_func(salt, i as u32);
+                    let new_hash = hash_func(salt, &i.to_string());
                     let result = has_five(&new_hash, c3);
                     stream.push(new_hash);
                     result
@@ -44,7 +44,7 @@ fn is_key(index: u32, stream: &mut Vec<String>, salt: &str, hash_func: fn(&str, 
     // three.is_some()
 }
 
-fn find_64th(input: &str, hash_func: fn(&str, u32) -> String) {
+fn find_64th(input: &str, hash_func: fn(&str, &String) -> String) {
     let mut key_indices = Vec::new();
     let mut index = 0;
     let mut stream = Vec::new();
@@ -70,8 +70,8 @@ fn one(input: &str) {
     find_64th(input, utils::hex_md5);
 }
 
-fn key_stretching(salt: &str, index: u32) -> String {
-    let mut hash = utils::hex_md5(salt, index);
+fn key_stretching(salt: &str, additional: &String) -> String {
+    let mut hash = utils::hex_md5(salt, additional);
     for _ in 0..2016 {
         hash = format!("{:x}", md5::compute(hash));
     }
