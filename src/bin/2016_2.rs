@@ -1,7 +1,7 @@
 use std::convert::TryInto;
 
 fn main() {
-    let input = aoc::utils::read_input();
+    let input = aoc::read_input();
     let lines: Vec<&str> = input.lines().collect();
     one(&lines);
     two(&lines);

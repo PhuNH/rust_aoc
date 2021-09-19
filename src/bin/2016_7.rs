@@ -1,7 +1,5 @@
-use aoc::utils;
-
 fn main() {
-    let input = utils::read_input();
+    let input = aoc::read_input();
     let lines: Vec<Vec<char>> = input.lines().map(|l| l.chars().collect()).collect();
     one(&lines);
     two(&lines);

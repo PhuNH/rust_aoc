@@ -1,12 +1,13 @@
 use std::collections::{VecDeque, HashSet};
+use aoc::grid::TwoDCell;
 
-#[derive(Debug, Clone, Eq, PartialEq, Hash)]
-struct Coord {
-    x: i32,
-    y: i32
+trait Day13 {
+    fn is_space(&self, fav: i32) -> bool;
+    fn is_valid(&self) -> bool;
+    fn neighbors(&self) -> Vec<TwoDCell>;
 }
 
-impl Coord {
+impl Day13 for TwoDCell {
     fn is_space(&self, fav: i32) -> bool {
         let sum = self.x.pow(2) + 3 * self.x + 2 * self.x * self.y + self.y + self.y.pow(2) + fav;
         let binary = format!("{:b}", sum);
@@ -17,21 +18,21 @@ impl Coord {
         self.x >= 0 && self.y >= 0
     }
 
-    fn neighbors(&self) -> Vec<Coord> {
-        vec![Coord { x: self.x-1, ..*self }, Coord { x: self.x+1, ..*self },
-             Coord { y: self.y-1, ..*self }, Coord { y: self.y+1, ..*self }]
+    fn neighbors(&self) -> Vec<TwoDCell> {
+        vec![TwoDCell { x: self.x-1, ..*self }, TwoDCell { x: self.x+1, ..*self },
+             TwoDCell { y: self.y-1, ..*self }, TwoDCell { y: self.y+1, ..*self }]
     }
 }
 
 fn main() {
     let input = 1364;
-    let initial_coord = Coord { x: 1, y: 1 };
+    let initial_coord = TwoDCell { x: 1, y: 1 };
     one(input, initial_coord.clone());
     two(input, initial_coord);
 }
 
-fn one(input: i32, initial_coord: Coord) {
-    let dest_coord = Coord { x: 31, y: 39 };
+fn one(input: i32, initial_coord: TwoDCell) {
+    let dest_coord = TwoDCell { x: 31, y: 39 };
     let mut queue = VecDeque::new();
     queue.push_back((initial_coord.clone(), 0usize));
     let mut passed_coords = HashSet::new();
@@ -55,7 +56,7 @@ fn one(input: i32, initial_coord: Coord) {
     println!("{}", step_count);
 }
 
-fn two(input: i32, initial_coord: Coord) {
+fn two(input: i32, initial_coord: TwoDCell) {
     let mut queue = VecDeque::new();
     queue.push_back((initial_coord.clone(), 0usize));
     let mut passed_coords = HashSet::new();

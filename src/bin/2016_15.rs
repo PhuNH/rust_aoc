@@ -1,5 +1,3 @@
-use aoc::utils;
-
 #[derive(Debug)]
 struct Disk {
     number: u32,
@@ -33,7 +31,7 @@ fn find_t(disks: &Vec<Disk>) -> u32 {
 }
 
 fn main() {
-    let input = utils::read_input();
+    let input = aoc::read_input();
     let lines = input.lines().collect::<Vec<_>>();
     let disks = process_input(lines);
     // println!("{:?}", disks);

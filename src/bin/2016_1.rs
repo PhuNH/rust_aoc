@@ -1,5 +1,5 @@
 fn main() {
-    let line = aoc::utils::read_input();
+    let line = aoc::read_input();
 
     let (mut orientation, mut x, mut y, mut new_x, mut new_y) = (0, 0, 0, 0, 0);
     let points = line.split(',').map(|p| {

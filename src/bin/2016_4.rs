@@ -1,4 +1,3 @@
-use aoc::utils;
 use std::collections::HashMap;
 
 struct RoomInfo {
@@ -8,7 +7,7 @@ struct RoomInfo {
 }
 
 fn main() {
-    let input = utils::read_input();
+    let input = aoc::read_input();
     let rooms: Vec<RoomInfo> = process_input(input);
     one(&rooms);
     two(&rooms);

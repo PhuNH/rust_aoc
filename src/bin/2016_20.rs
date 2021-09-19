@@ -1,5 +1,3 @@
-use aoc::utils;
-
 fn process_input(lines: Vec<&str>) -> Vec<Vec<u32>> {
     lines.into_iter().map(|l| {
         l.split('-').map(|s| s.parse().unwrap()).collect()
@@ -7,7 +5,7 @@ fn process_input(lines: Vec<&str>) -> Vec<Vec<u32>> {
 }
 
 fn main() {
-    let input = utils::read_input();
+    let input = aoc::read_input();
     let lines = input.lines().collect::<Vec<_>>();
     let mut ranges = process_input(lines);
     ranges.sort_by_key(|p| p[0]);

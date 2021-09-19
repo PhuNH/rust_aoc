@@ -1,11 +1,10 @@
-use aoc::utils;
 use std::collections::HashSet;
 
 const HEIGHT: u32 = 6;
 const WIDTH: u32 = 50;
 
 fn main() {
-    let input = utils::read_input();
+    let input = aoc::read_input();
     let lines: Vec<&str> = input.lines().collect();
     let mut set = HashSet::<(u32, u32)>::new();
     process(&lines, &mut set);

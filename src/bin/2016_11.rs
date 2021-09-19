@@ -1,4 +1,3 @@
-use aoc::utils;
 use std::collections::{HashSet, HashMap, VecDeque};
 use std::hash::{Hash, Hasher};
 use std::fmt::{Debug, Formatter};
@@ -373,7 +372,7 @@ fn go(initial: State) -> usize {
 }
 
 fn main() {
-    let input = utils::read_input();
+    let input = aoc::read_input();
     let lines: Vec<&str> = input.lines().collect();
     let input_state = read_input(&lines);
     // assert_eq!(initial_state.floors.get(&1).unwrap().view.pairs, 1);

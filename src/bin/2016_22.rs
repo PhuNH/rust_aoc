@@ -1,7 +1,7 @@
-use aoc::*;
 use std::collections::HashMap;
 use std::cell::RefCell;
 use std::fmt::{Display, Formatter};
+use aoc::grid::{Grid, TwoDCell};
 
 struct Node {
     size: u32,
@@ -57,7 +57,7 @@ fn process_input(lines: Vec<&str>) -> Grid<RefCell<Node>> {
 }
 
 fn main() {
-    let input = utils::read_input();
+    let input = aoc::read_input();
     let lines = input.lines().skip(2).collect::<Vec<_>>();
     let grid = process_input(lines);
     one(&grid);

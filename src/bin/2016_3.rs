@@ -1,5 +1,5 @@
 fn main() {
-    let input = aoc::utils::read_input();
+    let input = aoc::read_input();
 
     one(&input);
     two(&input);

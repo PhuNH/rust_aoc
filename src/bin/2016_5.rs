@@ -1,5 +1,3 @@
-use aoc::utils;
-
 fn main() {
     let door_id = "ffykfhsq";
     one(door_id);
@@ -11,7 +9,7 @@ fn one(door_id: &str) {
     let mut digest;
     for _ in 0..8 {
         loop {
-            digest = utils::hex_md5(door_id, index);
+            digest = aoc::hex_md5(door_id, &index.to_string());
             index += 1;
             if digest.starts_with("00000") { break; }
         }
@@ -28,7 +26,7 @@ fn two(door_id: &str) {
     let mut result = ['_'; 8];
     while result.contains(&'_') {
         loop {
-            digest = utils::hex_md5(door_id, index);
+            digest = aoc::hex_md5(door_id, &index.to_string());
             index += 1;
             let mut char_iter = digest.chars().skip(5);
             pos = char_iter.next().unwrap() as u8;

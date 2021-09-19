@@ -1,4 +1,3 @@
-use aoc::utils;
 use std::collections::HashMap;
 use std::cell::RefCell;
 
@@ -127,7 +126,7 @@ fn read_input(lines: Vec<&str>) -> BotNet {
 }
 
 fn main() {
-    let input = utils::read_input();
+    let input = aoc::read_input();
     let lines: Vec<&str> = input.lines().collect();
     let mut bot_net = read_input(lines);
     let mut outputs = [0; 3];

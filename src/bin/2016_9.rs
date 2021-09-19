@@ -1,7 +1,5 @@
-use aoc::utils;
-
 fn main() {
-    let input = utils::read_input();
+    let input = aoc::read_input();
     let input = input.lines().next().unwrap();
     one(input);
     two(input);

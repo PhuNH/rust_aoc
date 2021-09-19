@@ -1,9 +1,8 @@
-use aoc::utils;
 use std::collections::HashMap;
 use std::cmp::Ordering;
 
 fn main() {
-    let input = utils::read_input();
+    let input = aoc::read_input();
     let lines: Vec<Vec<_>> = input.lines().map(|l| l.chars().collect()).collect();
     let counts = get_total_counts(&lines);
     one(&counts);

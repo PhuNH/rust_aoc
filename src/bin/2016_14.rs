@@ -1,4 +1,3 @@
-use aoc::utils;
 use md5;
 
 fn has_five(hash: &String, char_three: &char) -> bool {
@@ -67,11 +66,11 @@ fn main() {
 }
 
 fn one(input: &str) {
-    find_64th(input, utils::hex_md5);
+    find_64th(input, aoc::hex_md5);
 }
 
 fn key_stretching(salt: &str, additional: &String) -> String {
-    let mut hash = utils::hex_md5(salt, additional);
+    let mut hash = aoc::hex_md5(salt, additional);
     for _ in 0..2016 {
         hash = format!("{:x}", md5::compute(hash));
     }

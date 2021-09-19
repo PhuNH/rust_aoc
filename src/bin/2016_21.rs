@@ -1,5 +1,3 @@
-use aoc::utils;
-
 fn swap_positions(input: &str, x: usize, y: usize) -> String {
     let mut chars: Vec<_> = input.chars().collect();
     let temp = chars[x];
@@ -154,7 +152,7 @@ fn unscramble(scrambled_password: &str, lines: &Vec<&str>, map: Vec<usize>) -> S
 }
 
 fn main() {
-    let input = utils::read_input();
+    let input = aoc::read_input();
     let lines = input.lines().collect::<Vec<_>>();
     let map = vec![1usize,1,6,2,7,3,0,4];
     assert_eq!(swap_positions(&swap_positions("cbeghdaf", 2, 5), 5, 2), "cbeghdaf");

@@ -1,5 +1,3 @@
-use aoc::utils;
-
 type Tile = char;
 const TRAP: Tile = '^';
 const SAFE: Tile = '.';
@@ -23,7 +21,7 @@ fn produce_row(prev: Vec<Tile>) -> Vec<Tile> {
 }
 
 fn main() {
-    let input = utils::read_input().trim_end().chars().collect();
+    let input = aoc::read_input().trim_end().chars().collect();
     one(&input);
     two(&input);
 }

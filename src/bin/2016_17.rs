@@ -1,4 +1,3 @@
-use aoc::utils;
 use std::collections::VecDeque;
 
 type Step = char;
@@ -13,7 +12,7 @@ struct State {
 
 impl State {
     fn check_doors(passcode: &str, path: &Vec<Step>) -> Vec<Door> {
-        let hash = utils::hex_md5(passcode, &path.iter().collect::<String>());
+        let hash = aoc::hex_md5(passcode, &path.iter().collect::<String>());
         hash.chars().take(4).map(|c| c > 'a' && c <= 'f').collect()
     }
 
