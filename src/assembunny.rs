@@ -1,75 +1,145 @@
 use std::collections::HashMap;
 use std::cell::Cell;
 
-enum Value {
+#[derive(Clone)]
+enum Value<'a> {
     Literal(i32),
-    Register(String),
+    Register(&'a str),
 }
 
-impl Value {
+impl<'a> Value<'a> {
     fn make(input: &str) -> Value {
         match input.parse::<i32>().ok() {
-            None => Value::Register(String::from(input)),
+            None => Value::Register(input),
             Some(l) => Value::Literal(l)
         }
     }
 
-    fn get(&self, registers: &HashMap<String, Cell<i32>>) -> i32 {
+    fn get(&self, registers: &Registers) -> i32 {
         match self {
             Value::Literal(l) => *l,
             Value::Register(s) => {
-                let register = registers.get(s).unwrap().get();
+                let register = registers.get(s).get();
                 register
             }
         }
     }
 }
 
-enum Instruction {
-    Copy(Value, String),
-    Inc(String),
-    Dec(String),
-    Jnz(Value, Value),
+#[derive(Clone)]
+enum Instruction<'a, 'b> {
+    Cpy(Value<'a>, &'b str),
+    Inc(&'a str),
+    Dec(&'a str),
+    Jnz(Value<'a>, Value<'b>),
+    Tgl(Value<'a>),
 }
 
-impl Instruction {
-    fn make(input: &str) -> Instruction {
+impl Instruction<'_, '_> {
+    fn cpy(registers: &Registers, value: &Value, register_name: &str) {
+        let register = registers.get(register_name);
+        register.set(value.get(registers));
+    }
+
+    fn inc(registers: &Registers, register_name: &str) {
+        let register = registers.get(register_name);
+        register.set(register.get() + 1);
+    }
+
+    fn dec(registers: &Registers, register_name: &str) {
+        let register = registers.get(register_name);
+        register.set(register.get() - 1);
+    }
+
+    fn jnz(registers: &Registers, value: &Value, dist: &Value, ip_dist: &mut i32) {
+        if value.get(registers) != 0 {
+            *ip_dist = dist.get(registers);
+        }
+    }
+}
+
+#[derive(Clone, PartialEq)]
+enum Morph {
+    Original, // others
+    Intermediate, // Jnz, Inc
+    Final, // Cpy, Dec
+}
+
+#[derive(Clone)]
+struct MorphingInstruction<'a, 'b> {
+    instr: Instruction<'a, 'b>,
+    morph: Morph,
+}
+
+impl MorphingInstruction<'_, '_> {
+    fn make(input: &str) -> MorphingInstruction {
         let words = input.split_whitespace().collect::<Vec<_>>();
         match words[0] {
             "cpy" => {
                 let source = Value::make(words[1]);
-                let target = String::from(words[2]);
-                Instruction::Copy(source, target)
+                let target = words[2];
+                MorphingInstruction { instr: Instruction::Cpy(source, target), morph: Morph::Final }
             },
-            "inc" => Instruction::Inc(String::from(words[1])),
-            "dec" => Instruction::Dec(String::from(words[1])),
-            _ => {
+            "inc" => MorphingInstruction { instr: Instruction::Inc(words[1]), morph: Morph::Intermediate },
+            "dec" => MorphingInstruction { instr: Instruction::Dec(words[1]), morph: Morph::Final },
+            "jnz" => {
                 let cond = Value::make(words[1]);
                 let dist = Value::make(words[2]);
-                Instruction::Jnz(cond, dist)
+                MorphingInstruction { instr: Instruction::Jnz(cond, dist), morph: Morph::Intermediate }
+            },
+            _ => {
+                let dist = Value::make(words[1]);
+                MorphingInstruction { instr: Instruction::Tgl(dist), morph: Morph::Original }
             }
         }
     }
 
-    fn run(&self, registers: &HashMap<String, Cell<i32>>) {
-        let ip = registers.get("ip").unwrap();
+    fn morph(&mut self) {
+        if self.morph == Morph::Intermediate {
+            self.morph = Morph::Final;
+        } else {
+            self.morph = Morph::Intermediate;
+        }
+    }
+
+    fn run(&self, program: &mut Program) {
+        let ip = program.registers.get("ip");
         let mut ip_dist = 1;
-        match self {
-            Instruction::Copy(value, register_name) => {
-                let register = registers.get(register_name).unwrap();
-                register.set(value.get(registers));
-            }
+        match &self.instr {
+            Instruction::Cpy(value, register_name) => {
+                if self.morph != Morph::Intermediate { Instruction::cpy(&program.registers, value, register_name); }
+                else { Instruction::jnz(&program.registers, value, &Value::Register(register_name.clone()), &mut ip_dist); }
+            },
             Instruction::Inc(register_name) => {
-                let register = registers.get(register_name).unwrap();
-                register.set(register.get() + 1);
+                if self.morph != Morph::Final { Instruction::inc(&program.registers, register_name); }
+                else { Instruction::dec(&program.registers, register_name); }
             },
             Instruction::Dec(register_name) => {
-                let register = registers.get(register_name).unwrap();
-                register.set(register.get() - 1);
+                if self.morph != Morph::Intermediate { Instruction::dec(&program.registers, register_name); }
+                else { Instruction::inc(&program.registers, register_name); }
             },
             Instruction::Jnz(value, dist) => {
-                if value.get(registers) != 0 {
-                    ip_dist = dist.get(registers);
+                if self.morph != Morph::Final { Instruction::jnz(&program.registers, value, dist, &mut ip_dist); }
+                else {
+                    if let Value::Register(register_name) = dist {
+                        Instruction::cpy(&program.registers, value, register_name);
+                    }
+                }
+            },
+            Instruction::Tgl(dist) => {
+                if self.morph == Morph::Original {
+                    let instr_to_tgl_index = (ip.get() + dist.get(&program.registers)) as usize;
+                    if instr_to_tgl_index < program.instructions.len() {
+                        program.instructions[instr_to_tgl_index].morph();
+                    }
+                } else if self.morph == Morph::Intermediate {
+                    if let Value::Register(register_name) = dist {
+                        Instruction::inc(&program.registers, register_name);
+                    }
+                } else {
+                    if let Value::Register(register_name) = dist {
+                        Instruction::dec(&program.registers, register_name);
+                    }
                 }
             }
         }
@@ -77,22 +147,64 @@ impl Instruction {
     }
 }
 
-pub struct Program {
-    instructions: Vec<Instruction>
+struct Registers<'a> {
+    registers: HashMap<&'a str, Cell<i32>>,
 }
 
-impl Program {
-    pub fn make(lines: Vec<&str>) -> Program {
-        let instructions = lines.iter().map(|&l| Instruction::make(l)).collect::<Vec<_>>();
-        Program { instructions }
+impl<'a> Registers<'a> {
+    fn new() -> Registers<'a> {
+        let mut registers = HashMap::new();
+        ["a", "b", "c", "d", "ip"].iter().for_each(|&r| {
+            registers.insert(r, Cell::new(0));
+        });
+        Registers { registers }
     }
 
-    pub fn run(&self, registers: &HashMap<String, Cell<i32>>) {
-        loop {
-            let ip = registers.get("ip").unwrap().get();
-            if ip < 0 || ip as usize >= self.instructions.len() { break }
-            self.instructions[ip as usize].run(registers);
+    fn update(&mut self, names: Vec<&'a str>, values: Vec<i32>) {
+        if names.len() > values.len() {
+            panic!("There are more names than values.");
         }
+
+        names.iter().enumerate().for_each(|(i, &name)| {
+            self.registers.insert(name, Cell::new(values[i]));
+        });
+    }
+
+    fn get(&self, register_name: &str) -> &Cell<i32> {
+        self.registers.get(register_name).unwrap()
+    }
+}
+
+pub struct Program<'a, 'b, 'c> {
+    instructions: Vec<MorphingInstruction<'a, 'b>>,
+    registers: Registers<'c>,
+}
+
+impl Program<'_, '_, '_> {
+    pub fn make(lines: Vec<&str>) -> Program {
+        let instructions = lines.into_iter().map(|l| MorphingInstruction::make(l)).collect::<Vec<_>>();
+        let registers = Registers::new();
+        Program { instructions, registers }
+    }
+
+    pub fn make_init<'a, 'c>(lines: Vec<&'a str>, names: Vec<&'c str>, values: Vec<i32>) -> Program<'a, 'a, 'c> {
+        let instructions = lines.into_iter().map(|l| MorphingInstruction::make(l)).collect::<Vec<_>>();
+        let mut registers = Registers::new();
+        registers.update(names, values);
+        Program { instructions, registers }
+    }
+
+    pub fn run(&mut self) {
+        loop {
+            let ip = self.registers.get("ip").get();
+            if ip < 0 || ip as usize >= self.instructions.len() { break }
+            let instr = self.instructions[ip as usize].clone();
+            instr.run(self);
+        }
+    }
+
+    pub fn get(&self, register_name: &str) -> i32 {
+        self.registers.get(register_name).get()
     }
 }
 
