@@ -66,30 +66,31 @@ enum Morph {
 }
 
 #[derive(Clone)]
-struct MorphingInstruction<'a, 'b> {
+struct MorphingInstruction<'a, 'b, 'c> {
     instr: Instruction<'a, 'b>,
     morph: Morph,
+    string: &'c str,
 }
 
-impl MorphingInstruction<'_, '_> {
+impl MorphingInstruction<'_, '_, '_> {
     fn make(input: &str) -> MorphingInstruction {
         let words = input.split_whitespace().collect::<Vec<_>>();
         match words[0] {
             "cpy" => {
                 let source = Value::make(words[1]);
                 let target = words[2];
-                MorphingInstruction { instr: Instruction::Cpy(source, target), morph: Morph::Final }
+                MorphingInstruction { instr: Instruction::Cpy(source, target), morph: Morph::Final, string: input }
             },
-            "inc" => MorphingInstruction { instr: Instruction::Inc(words[1]), morph: Morph::Intermediate },
-            "dec" => MorphingInstruction { instr: Instruction::Dec(words[1]), morph: Morph::Final },
+            "inc" => MorphingInstruction { instr: Instruction::Inc(words[1]), morph: Morph::Intermediate, string: input },
+            "dec" => MorphingInstruction { instr: Instruction::Dec(words[1]), morph: Morph::Final, string: input },
             "jnz" => {
                 let cond = Value::make(words[1]);
                 let dist = Value::make(words[2]);
-                MorphingInstruction { instr: Instruction::Jnz(cond, dist), morph: Morph::Intermediate }
+                MorphingInstruction { instr: Instruction::Jnz(cond, dist), morph: Morph::Intermediate, string: input }
             },
             _ => {
                 let dist = Value::make(words[1]);
-                MorphingInstruction { instr: Instruction::Tgl(dist), morph: Morph::Original }
+                MorphingInstruction { instr: Instruction::Tgl(dist), morph: Morph::Original, string: input }
             }
         }
     }
@@ -175,19 +176,19 @@ impl<'a> Registers<'a> {
     }
 }
 
-pub struct Program<'a, 'b, 'c> {
-    instructions: Vec<MorphingInstruction<'a, 'b>>,
-    registers: Registers<'c>,
+pub struct Program<'a, 'b, 'c, 'd> {
+    instructions: Vec<MorphingInstruction<'a, 'b, 'c>>,
+    registers: Registers<'d>,
 }
 
-impl Program<'_, '_, '_> {
+impl Program<'_, '_, '_, '_> {
     pub fn make(lines: Vec<&str>) -> Program {
         let instructions = lines.into_iter().map(|l| MorphingInstruction::make(l)).collect::<Vec<_>>();
         let registers = Registers::new();
         Program { instructions, registers }
     }
 
-    pub fn make_init<'a, 'c>(lines: Vec<&'a str>, names: Vec<&'c str>, values: Vec<i32>) -> Program<'a, 'a, 'c> {
+    pub fn make_init<'a, 'c>(lines: Vec<&'a str>, names: Vec<&'c str>, values: Vec<i32>) -> Program<'a, 'a, 'a, 'c> {
         let instructions = lines.into_iter().map(|l| MorphingInstruction::make(l)).collect::<Vec<_>>();
         let mut registers = Registers::new();
         registers.update(names, values);
@@ -203,8 +204,13 @@ impl Program<'_, '_, '_> {
         }
     }
 
-    pub fn get(&self, register_name: &str) -> i32 {
+    pub fn get_register(&self, register_name: &str) -> i32 {
         self.registers.get(register_name).get()
+    }
+
+    pub fn get_instruction_string(&self, instr_index: usize) -> &str {
+        assert!(instr_index < self.instructions.len(), "Invalid index");
+        self.instructions[instr_index].string
     }
 }
 
