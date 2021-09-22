@@ -1,5 +1,6 @@
 use std::ops;
 use std::collections::{HashMap, HashSet};
+use std::fmt::{Display, Formatter};
 
 #[derive(Eq, PartialEq, Hash, Copy, Clone)]
 pub struct TwoDCell {
@@ -8,9 +9,13 @@ pub struct TwoDCell {
 }
 
 const RIGHT: TwoDCell = TwoDCell { x: 1, y: 0 };
+const RIGHT_DOWN: TwoDCell = TwoDCell { x: 1, y: 1 };
 const DOWN: TwoDCell = TwoDCell { x: 0, y: 1 };
+const LEFT_DOWN: TwoDCell = TwoDCell { x: -1, y: 1 };
 const LEFT: TwoDCell = TwoDCell { x: -1, y: 0 };
+const LEFT_UP: TwoDCell = TwoDCell { x: -1, y: -1 };
 const UP: TwoDCell = TwoDCell { x: 0, y: -1 };
+const RIGHT_UP: TwoDCell = TwoDCell { x: 1, y: -1 };
 
 impl ops::Add for TwoDCell {
     type Output = Self;
@@ -20,9 +25,32 @@ impl ops::Add for TwoDCell {
     }
 }
 
+impl Display for TwoDCell {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "x: {}, y: {}", self.x, self.y)
+    }
+}
+
 impl TwoDCell {
     pub fn from(x: i32, y: i32) -> TwoDCell {
         TwoDCell { x, y }
+    }
+
+    pub fn mht_dist(&self) -> i32 {
+        self.x.abs() + self.y.abs()
+    }
+
+    pub fn mht_dist_to(&self, other: &TwoDCell) -> i32 {
+        (self.x - other.x).abs() + (self.y - other.y).abs()
+    }
+
+    pub fn neighbors_4(&self) -> Vec<TwoDCell> {
+        vec![*self + RIGHT, *self + DOWN, *self + LEFT, *self + UP]
+    }
+
+    pub fn neighbors_8(&self) -> Vec<TwoDCell> {
+        vec![*self + RIGHT, *self + RIGHT_DOWN, *self + DOWN, *self + LEFT_DOWN,
+             *self + LEFT, *self + LEFT_UP, *self + UP, *self + RIGHT_UP]
     }
 }
 
