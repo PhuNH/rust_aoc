@@ -17,6 +17,8 @@ const LEFT_UP: TwoDCell = TwoDCell { x: -1, y: -1 };
 const UP: TwoDCell = TwoDCell { x: 0, y: -1 };
 const RIGHT_UP: TwoDCell = TwoDCell { x: 1, y: -1 };
 
+const HEX_NORTH: TwoDCell = TwoDCell { x: , y: };
+
 impl ops::Add for TwoDCell {
     type Output = Self;
 
