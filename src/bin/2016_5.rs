@@ -13,7 +13,7 @@ fn one(door_id: &str) {
             index += 1;
             if digest.starts_with("00000") { break; }
         }
-        print!("{}", digest.chars().skip(5).next().unwrap());
+        print!("{}", digest.chars().nth(5).unwrap());
     }
     println!();
 }

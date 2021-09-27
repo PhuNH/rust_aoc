@@ -19,7 +19,7 @@ fn factorial(n: u32) -> u32 {
 }
 
 fn get_first_argument(program: &Program, instr_index: usize) -> u32 {
-    program.get_instruction_string(instr_index).split_whitespace().skip(1).next().unwrap().parse().unwrap()
+    program.get_instruction_string(instr_index).split_whitespace().nth(1).unwrap().parse().unwrap()
 }
 
 fn two(lines: Vec<&str>) {

@@ -10,7 +10,7 @@ struct Program<'a> {
 fn process_name_weight(name_weight: &str) -> (&str, u32) {
     let mut name_weight_iter = name_weight.split_whitespace();
     let name = name_weight_iter.next().unwrap();
-    let weight = name_weight_iter.next().unwrap().split(&['(', ')'][..]).skip(1).next().unwrap().parse().unwrap();
+    let weight = name_weight_iter.next().unwrap().split(&['(', ')'][..]).nth(1).unwrap().parse().unwrap();
     (name, weight)
 }
 
