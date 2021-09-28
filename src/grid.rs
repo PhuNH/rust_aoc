@@ -8,13 +8,13 @@ pub struct TwoDCell {
     pub y: i32,
 }
 
-const RIGHT: TwoDCell = TwoDCell { x: 1, y: 0 };
+pub const RIGHT: TwoDCell = TwoDCell { x: 1, y: 0 };
 const RIGHT_DOWN: TwoDCell = TwoDCell { x: 1, y: 1 };
-const DOWN: TwoDCell = TwoDCell { x: 0, y: 1 };
+pub const DOWN: TwoDCell = TwoDCell { x: 0, y: 1 };
 const LEFT_DOWN: TwoDCell = TwoDCell { x: -1, y: 1 };
-const LEFT: TwoDCell = TwoDCell { x: -1, y: 0 };
+pub const LEFT: TwoDCell = TwoDCell { x: -1, y: 0 };
 const LEFT_UP: TwoDCell = TwoDCell { x: -1, y: -1 };
-const UP: TwoDCell = TwoDCell { x: 0, y: -1 };
+pub const UP: TwoDCell = TwoDCell { x: 0, y: -1 };
 const RIGHT_UP: TwoDCell = TwoDCell { x: 1, y: -1 };
 
 impl ops::Add for TwoDCell {
