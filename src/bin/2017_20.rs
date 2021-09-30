@@ -55,7 +55,7 @@ fn main() {
             .collect();
         Particle { p: ThreeDCell::from(&parts[0]), v: ThreeDCell::from(&parts[1]), a: ThreeDCell::from(&parts[2]), dead: false }
     }).collect();
-    one_and_two(&particles);
+    one(&particles);
     two(&mut particles);
 }
 
@@ -106,7 +106,7 @@ fn run(particles: &mut Vec<Particle>, collidable: bool) {
     }
 }
 
-fn one_and_two(original: &Vec<Particle>) {
+fn one(original: &Vec<Particle>) {
     let mut particles = original.clone();
     run(&mut particles, false);
 }
