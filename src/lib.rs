@@ -15,6 +15,12 @@ pub fn hex_md5(salt: &str, additional: &String) -> String {
     format!("{:x}", md5::compute(salt.to_owned() + additional))
 }
 
+pub fn is_prime(n: u32) -> bool {
+    let sqrt = (n as f64).sqrt() as u32;
+    if n % 2 == 0 { false }
+    else { (3..=sqrt).step_by(2).all(|d| n % d != 0) }
+}
+
 pub fn knot_hash_round(lengths: &Vec<usize>, list: &mut Vec<i32>, current_position: &mut usize, skip_size: &mut usize) {
     let list_len = list.len();
 
