@@ -5,4 +5,3 @@ Advent of Code 2016, 2017 in Rust
 
 ### TODO
 2016: 24+  
-2017: 3+
