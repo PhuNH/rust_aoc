@@ -4,7 +4,6 @@ use aoc::grid::TwoDCell;
 trait Day13 {
     fn is_space(&self, fav: i32) -> bool;
     fn is_valid(&self) -> bool;
-    fn neighbors(&self) -> Vec<TwoDCell>;
 }
 
 impl Day13 for TwoDCell {
@@ -16,11 +15,6 @@ impl Day13 for TwoDCell {
 
     fn is_valid(&self) -> bool {
         self.x >= 0 && self.y >= 0
-    }
-
-    fn neighbors(&self) -> Vec<TwoDCell> {
-        vec![TwoDCell { x: self.x-1, ..*self }, TwoDCell { x: self.x+1, ..*self },
-             TwoDCell { y: self.y-1, ..*self }, TwoDCell { y: self.y+1, ..*self }]
     }
 }
 
@@ -39,7 +33,7 @@ fn one(input: i32, initial_coord: TwoDCell) {
     passed_coords.insert(initial_coord);
     let step_count = loop {
         let (coord, step) = queue.pop_front().unwrap();
-        let neighbors: HashSet<_> = coord.neighbors()
+        let neighbors: HashSet<_> = coord.neighbors_4()
             .into_iter()
             .filter(|c| !passed_coords.contains(c) && c.is_valid() && c.is_space(input))
             .collect();
@@ -64,7 +58,7 @@ fn two(input: i32, initial_coord: TwoDCell) {
     loop {
         let (coord, step) = queue.pop_front().unwrap();
         if step == 50 { break }
-        let neighbors: HashSet<_> = coord.neighbors()
+        let neighbors: HashSet<_> = coord.neighbors_4()
             .into_iter()
             .filter(|c| !passed_coords.contains(c) && c.is_valid() && c.is_space(input))
             .collect();
