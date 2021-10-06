@@ -21,6 +21,11 @@ pub fn is_prime(n: u32) -> bool {
     else { (3..=sqrt).step_by(2).all(|d| n % d != 0) }
 }
 
+pub fn factorial(n: u32) -> u32 {
+    if n == 2 { 2 }
+    else { n * factorial(n-1) }
+}
+
 pub fn knot_hash_round(lengths: &Vec<usize>, list: &mut Vec<i32>, current_position: &mut usize, skip_size: &mut usize) {
     let list_len = list.len();
 

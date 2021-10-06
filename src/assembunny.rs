@@ -212,6 +212,10 @@ impl Program<'_, '_, '_, '_> {
         assert!(instr_index < self.instructions.len(), "Invalid index");
         self.instructions[instr_index].string
     }
+
+    pub fn get_first_argument(&self, instr_index: usize) -> u32 {
+        self.get_instruction_string(instr_index).split_whitespace().nth(1).unwrap().parse().unwrap()
+    }
 }
 
 

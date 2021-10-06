@@ -1,0 +1,30 @@
+cpy a d         d = a
+cpy 11 c        c = 11
+cpy 231 b       b = 231
+inc d           d += b * c              d = a + 2541
+dec b
+jnz b -2
+dec c
+jnz c -5
+cpy d a     L9: a = d                   a = d
+jnz 0 0    L10:
+cpy a b         b = a
+cpy 0 a         a = 0
+cpy 2 c    L13: c = 2
+jnz b 2    L14: if b == 0:              c = a % 2
+jnz 1 6           goto L21              a = a / 2
+dec b           b -= 1
+dec c           c -= 1
+jnz c -4        if c != 0: goto L14
+inc a           a += 1
+jnz 1 -7        goto L13
+cpy 2 b    L21: b = 2                   print c
+jnz c 2         if c == 0:
+jnz 1 4           goto L27
+dec b           b -= 1
+dec c           c -= 1
+jnz 1 -4        goto L22
+jnz 0 0    L27: 
+out b           print b
+jnz a -19       if a != 0: goto L10     if a != 0: goto L10
+jnz 1 -21       goto L9                 goto L9
