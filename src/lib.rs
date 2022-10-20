@@ -1,14 +1,13 @@
-pub mod assembunny;
 pub mod grid;
 
 use std::fs;
-use std::env;
+use std::str::from_utf8;
 use md5;
 
-pub fn read_input() -> String {
-    let path = env::current_exe().unwrap();
-    let exe_name = path.file_name().unwrap().to_str().unwrap();
-    fs::read_to_string(format!("input/{}", exe_name)).unwrap()
+pub fn read_input(module_path: &str) -> String {
+    let parts: Vec<&str> = module_path.rsplit("::").take(2).map(|m|
+        from_utf8(&m.as_bytes()[1..]).unwrap()).collect();
+    fs::read_to_string(format!("input/{}/{}", parts[1], parts[0])).unwrap()
 }
 
 pub fn hex_md5(salt: &str, additional: &String) -> String {
